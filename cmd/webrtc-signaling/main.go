@@ -32,6 +32,9 @@ func main() {
 	h := http.NewServeMux()
 	h.HandleFunc(handler.GetVersionPath, handler.HandleGetVersion)
 
+	wsHandler := handler.NewWSHandler(&cfg)
+	h.HandleFunc(handler.WSPath, wsHandler.HandleWS)
+
 	httpServer := http.Server{
 		Addr:    cfg.ServerAddr,
 		Handler: h,
