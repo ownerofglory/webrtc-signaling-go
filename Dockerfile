@@ -19,7 +19,7 @@ FROM alpine:latest
 WORKDIR /root/
 
 COPY --from=build /app/bin/webrtc-signaling-go /usr/local/bin/webrtc-signaling-go
-COPY --from=build /app/web /usr/local/bin/web
-EXPOSE 8000
+COPY --from=build /app/web /root/web
+EXPOSE 8080
 
 CMD ["webrtc-signaling-go"]
