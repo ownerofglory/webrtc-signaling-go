@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="style.css">
+    <title>WebRTC Demo</title>
+</head>
+<body>
+<h1 style="color:white;position:absolute;z-index:2;margin:1em;">WebRTC Test</h1>
+
+<div id="controls">
+    <label style="color:white;">Peer ID: <input id="peerId" placeholder="Enter peer ID"></label>
+    <button onclick="startCall()">Call</button>
+    <button id="answerBtn" onclick="answerCall()" disabled>Answer</button>
+</div>
+
+<div style="position: relative;">
+    <video id="remote" autoplay playsinline></video>
+    <video id="local" autoplay playsinline muted></video>
+</div>
+
+<div id="log"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

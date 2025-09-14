@@ -1,0 +1,22 @@
+body { font-family: sans-serif; margin: 0; background: #000; }
+#controls { margin: 1em; position: relative; z-index: 2; }
+#log { margin: 1em; max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 0.5em; background: #fff; }
+
+#remote {
+    width: 100%;
+    height: 100vh;
+    object-fit: cover;
+    background: #000;
+}
+
+#local {
+    position: absolute;
+    width: 200px;
+    height: 150px;
+    bottom: 20px;
+    right: 20px;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    background: #000;
+    z-index: 3;
+}
