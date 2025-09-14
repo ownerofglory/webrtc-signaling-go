@@ -6,6 +6,7 @@ import (
 	"github.com/caarlos0/env/v11"
 	"github.com/ownerofglory/webrtc-signaling-go/config"
 	"github.com/ownerofglory/webrtc-signaling-go/internal/handler"
+	"github.com/ownerofglory/webrtc-signaling-go/internal/middleware"
 	"log/slog"
 	"net/http"
 	"os"
@@ -32,12 +33,18 @@ func main() {
 	h := http.NewServeMux()
 	h.HandleFunc(handler.GetVersionPath, handler.HandleGetVersion)
 
+	rtcConfigHanlder := handler.NewRTCConfigHandler(&cfg)
+	h.HandleFunc(handler.GetRTCConfigPath, rtcConfigHanlder.HandleGetRTCConfig)
+
 	wsHandler := handler.NewWSHandler(&cfg)
 	h.HandleFunc(handler.WSPath, wsHandler.HandleWS)
 
+	fs := http.FileServer(http.Dir("web"))
+	h.Handle("/webrtc-signaling/ws/app/", http.StripPrefix("/webrtc-signaling/ws/app/", fs))
+
 	httpServer := http.Server{
 		Addr:    cfg.ServerAddr,
-		Handler: h,
+		Handler: middleware.CORS(cfg.AllowedOrigins)(h),
 	}
 
 	go func() {

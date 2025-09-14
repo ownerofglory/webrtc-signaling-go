@@ -11,45 +11,49 @@ import (
 )
 
 const WSPath = basePathWS
+const WSAppPath = basePathWS + "/app"
 
 type (
 	wsHandler struct {
 		upgrader *websocket.Upgrader
 	}
 
-	webRTCClientID string
+	WebRTCClientID string
 
-	webRTCSignalingMessageType string
-	webrtcSignalingMessageSDP  string
+	WebRTCSignalingMessageType string
+	WebrtcSignalingMessageSDP  string
 
-	webRTCSignalingMessage struct {
-		MessageType webRTCSignalingMessageType `json:"type"`
-		SDP         webrtcSignalingMessageSDP  `json:"sdp"`
+	WebRTCSignalingMessage struct {
+		MessageType   WebRTCSignalingMessageType `json:"type,omitempty"`
+		SDP           WebrtcSignalingMessageSDP  `json:"sdp,omitempty"`
+		Candidate     string                     `json:"candidate,omitempty"`
+		SDPMid        string                     `json:"sdpMid,omitempty"`
+		SDPMLineIndex *int                       `json:"sdpMLineIndex,omitempty"`
 	}
 
-	webRTCClientMessage struct {
-		SignalingMessage *webRTCSignalingMessage `json:"signal"`
-		ReceiverPeerID   webRTCClientID          `json:"to"`
-		OriginPeerID     webRTCClientID          `json:"from"`
+	WebRTCClientMessage struct {
+		SignalingMessage *WebRTCSignalingMessage `json:"signal"`
+		ReceiverPeerID   WebRTCClientID          `json:"to"`
+		OriginPeerID     WebRTCClientID          `json:"from"`
 	}
 
 	webRTCClientConn struct {
 		conn          *websocket.Conn
-		id            webRTCClientID
+		id            WebRTCClientID
 		connCloseOnce sync.Once
-		readCh        chan *webRTCClientMessage
-		writeCh       chan *webRTCClientMessage
+		readCh        chan *WebRTCClientMessage
+		writeCh       chan *WebRTCClientMessage
 	}
 )
 
 const (
-	webrtcOffer     webRTCSignalingMessageType = "offer"
-	webrtcAnswer    webRTCSignalingMessageType = "answer"
-	webrtcCandidate webRTCSignalingMessageType = "candidate"
+	webrtcOffer     WebRTCSignalingMessageType = "offer"
+	webrtcAnswer    WebRTCSignalingMessageType = "answer"
+	webrtcCandidate WebRTCSignalingMessageType = "candidate"
 )
 
 var (
-	webRTCConnections = make(map[webRTCClientID]*webRTCClientConn)
+	webRTCConnections = make(map[WebRTCClientID]*webRTCClientConn)
 	connMx            sync.RWMutex
 )
 
@@ -59,12 +63,18 @@ func NewWSHandler(conf *config.WebRTCSignalingAppConfig) *wsHandler {
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
 			CheckOrigin: func(r *http.Request) bool {
-				//u, err := url.Parse(r.Header.Get("Origin"))
-				//if err != nil {
-				//	return false
-				//}
-				//return u.Host == conf.AllowedOrigin
-				return true
+				origin := r.Header.Get("Origin")
+				if origin == "" {
+					return false
+				}
+
+				for _, allowed := range conf.AllowedOrigins {
+					if origin == allowed {
+						return true
+					}
+				}
+
+				return false
 			},
 		},
 	}
@@ -83,12 +93,12 @@ func (h *wsHandler) HandleWS(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	clientID := webRTCClientID(clientUUID.String())
+	clientID := WebRTCClientID(clientUUID.String())
 	clientConn := &webRTCClientConn{
 		conn:    conn,
 		id:      clientID,
-		readCh:  make(chan *webRTCClientMessage),
-		writeCh: make(chan *webRTCClientMessage),
+		readCh:  make(chan *WebRTCClientMessage),
+		writeCh: make(chan *WebRTCClientMessage),
 	}
 
 	connMx.Lock()
@@ -134,11 +144,11 @@ func (c *webRTCClientConn) readRoutine() {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				break
 			}
-			continue
+			break
 		}
 
 		if mType == websocket.TextMessage {
-			var m webRTCClientMessage
+			var m WebRTCClientMessage
 			err := json.Unmarshal(payload, &m)
 			if err != nil {
 				slog.Error("Error when unmarshalling message", "err", err.Error())
