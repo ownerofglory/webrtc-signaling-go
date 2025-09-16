@@ -25,7 +25,7 @@ async function getRTCConfig() {
 ws.onmessage = async (ev) => {
     const m = JSON.parse(ev.data);
 
-    if (m.from && !m.signal && !m.to) {
+    if (m.from && (m.signal === null || m.signal === undefined) && (!m.to || m.to === "")) {
         document.getElementById("myId").innerText = "Your ID: " + m.from;
         log("Your ID is " + m.from);
         return;
