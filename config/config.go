@@ -1,7 +1,7 @@
 package config
 
 type WebRTCSignalingAppConfig struct {
-	ServerAddr     string   `env:"SERVER_ADDR" envDefault:"0.0.0.0:8080"`
+	ServerAddr     string   `env:"SERVER_ADDR" envDefault:":8080"`
 	AllowedOrigins []string `env:"ALLOWED_ORIGINS" envDefault:"*"`
 	LogLevel       string   `env:"LOG_LEVEL" envDefault:"info"`
 	TURNKey        string   `env:"TURN_KEY" envDefault:""`

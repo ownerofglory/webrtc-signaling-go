@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/caarlos0/env/v11"
 	"github.com/ownerofglory/webrtc-signaling-go/config"
+	"github.com/ownerofglory/webrtc-signaling-go/internal/core/services"
 	"github.com/ownerofglory/webrtc-signaling-go/internal/handler"
 	"github.com/ownerofglory/webrtc-signaling-go/internal/middleware"
 	"log/slog"
@@ -36,7 +37,8 @@ func main() {
 	rtcConfigHanlder := handler.NewRTCConfigHandler(&cfg)
 	h.HandleFunc(handler.GetRTCConfigPath, rtcConfigHanlder.HandleGetRTCConfig)
 
-	wsHandler := handler.NewWSHandler(&cfg)
+	nicknameGenerator := services.NewNicknameGenerator()
+	wsHandler := handler.NewWSHandler(&cfg, nicknameGenerator)
 	h.HandleFunc(handler.WSPath, wsHandler.HandleWS)
 
 	fs := http.FileServer(http.Dir("web"))
@@ -48,7 +50,7 @@ func main() {
 	}
 
 	go func() {
-		slog.Info("Starting HTTP Server")
+		slog.Info("Starting HTTP Server", "address", cfg.ServerAddr)
 
 		err := httpServer.ListenAndServe()
 
