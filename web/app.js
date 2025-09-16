@@ -24,6 +24,13 @@ async function getRTCConfig() {
 
 ws.onmessage = async (ev) => {
     const m = JSON.parse(ev.data);
+
+    if (m.from && !m.signal && !m.to) {
+        document.getElementById("myId").innerText = "Your ID: " + m.from;
+        log("Your ID is " + m.from);
+        return;
+    }
+
     if (!m.signal) return;
 
     if (!pc) initPeerConnection();
@@ -190,6 +197,15 @@ function waitForIceGathering(pc) {
                 }
             };
         }
+    });
+}
+
+function copyMyId() {
+    const text = document.getElementById("myId").innerText.replace("Your ID: ", "");
+    navigator.clipboard.writeText(text).then(() => {
+        log("Copied your ID to clipboard: " + text);
+    }).catch(err => {
+        console.error("Failed to copy ID:", err);
     });
 }
 

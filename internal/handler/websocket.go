@@ -2,9 +2,9 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/ownerofglory/webrtc-signaling-go/config"
+	"github.com/ownerofglory/webrtc-signaling-go/internal/core/ports"
 	"log/slog"
 	"net/http"
 	"sync"
@@ -15,7 +15,8 @@ const WSAppPath = basePathWS + "/app"
 
 type (
 	wsHandler struct {
-		upgrader *websocket.Upgrader
+		upgrader          *websocket.Upgrader
+		nicknameGenerator ports.NicknameGenerator
 	}
 
 	WebRTCClientID string
@@ -38,11 +39,12 @@ type (
 	}
 
 	webRTCClientConn struct {
-		conn          *websocket.Conn
-		id            WebRTCClientID
-		connCloseOnce sync.Once
-		readCh        chan *WebRTCClientMessage
-		writeCh       chan *WebRTCClientMessage
+		conn              *websocket.Conn
+		id                WebRTCClientID
+		connCloseOnce     sync.Once
+		readCh            chan *WebRTCClientMessage
+		writeCh           chan *WebRTCClientMessage
+		nicknameGenerator ports.NicknameGenerator
 	}
 )
 
@@ -57,8 +59,9 @@ var (
 	connMx            sync.RWMutex
 )
 
-func NewWSHandler(conf *config.WebRTCSignalingAppConfig) *wsHandler {
+func NewWSHandler(conf *config.WebRTCSignalingAppConfig, nicknameGenerator ports.NicknameGenerator) *wsHandler {
 	return &wsHandler{
+		nicknameGenerator: nicknameGenerator,
 		upgrader: &websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
@@ -87,18 +90,15 @@ func (h *wsHandler) HandleWS(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	clientUUID, err := uuid.NewV7()
-	if err != nil {
-		slog.Error("Error when generate client ID", "err", err.Error())
-		return
-	}
+	clientNickname := h.nicknameGenerator.Generate()
+	clientID := WebRTCClientID(clientNickname)
 
-	clientID := WebRTCClientID(clientUUID.String())
 	clientConn := &webRTCClientConn{
-		conn:    conn,
-		id:      clientID,
-		readCh:  make(chan *WebRTCClientMessage),
-		writeCh: make(chan *WebRTCClientMessage),
+		conn:              conn,
+		id:                clientID,
+		readCh:            make(chan *WebRTCClientMessage),
+		writeCh:           make(chan *WebRTCClientMessage),
+		nicknameGenerator: h.nicknameGenerator,
 	}
 
 	connMx.Lock()
@@ -106,6 +106,13 @@ func (h *wsHandler) HandleWS(rw http.ResponseWriter, req *http.Request) {
 	connMx.Unlock()
 
 	slog.Info("Client connected", "clientID", clientID)
+	initialMsg := &WebRTCClientMessage{
+		OriginPeerID: clientID,
+	}
+	payload, _ := json.Marshal(initialMsg)
+	if err := conn.WriteMessage(websocket.TextMessage, payload); err != nil {
+		slog.Error("Error sending initial nickname", "err", err.Error())
+	}
 
 	clientConn.serve()
 }
@@ -132,6 +139,7 @@ func (c *webRTCClientConn) close() {
 		}
 
 		delete(webRTCConnections, c.id)
+		c.nicknameGenerator.Release(string(c.id))
 	})
 }
 
