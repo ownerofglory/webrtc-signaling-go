@@ -124,6 +124,8 @@ async function startCall() {
     dc.onopen = () => log("Data channel open");
     dc.onmessage = (ev) => log("Peer: " + ev.data);
 
+    showCallingModal(peerId, "Dialing");
+
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
     await waitForIceGathering(pc);
@@ -135,7 +137,7 @@ async function startCall() {
         },
         to: peerId
     }));
-    showCallingModal(peerId);
+    showCallingModal(peerId, "Connecting with ");
     log("Offer sent to " + peerId);
 }
 
@@ -265,11 +267,12 @@ function hideIncomingCallModal() {
     setTimeout(() => modal.classList.add("hidden"), 300);
 }
 
-function showCallingModal(calleeId) {
+function showCallingModal(calleeId, callStatus) {
     const modal = document.getElementById("callingModal");
     const box = document.getElementById("callingBox");
 
     document.getElementById("calleeId").innerText = calleeId;
+    document.getElementById("callStatus").innerText = callStatus;
     modal.classList.remove("hidden");
 
     requestAnimationFrame(() => {
