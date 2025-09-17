@@ -1,4 +1,4 @@
-const ws = new WebSocket("ws://" + location.host + "/webrtc-signaling/ws");
+const ws = new WebSocket("wss://" + location.host + "/webrtc-signaling/ws");
 
 let pc = null;
 let dc = null;
