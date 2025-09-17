@@ -37,10 +37,7 @@ ws.onmessage = async (ev) => {
 
     if (m.signal.type === "offer") {
         pendingOffer = m;
-
-        document.getElementById("callerId").innerText = m.from;
-        document.getElementById("incomingCallModal").classList.remove("hidden");
-
+        showIncomingCallModal(m.from);
         log("Incoming call from " + m.from);
     }
     else if (m.signal.type === "answer") {
@@ -223,6 +220,41 @@ document.getElementById("rejectBtn").onclick = () => {
     log("Call rejected");
     // (Optional) Send a "reject" message to caller if you want them to know
 };
+
+document.getElementById("acceptBtn").onclick = async () => {
+    hideIncomingCallModal();
+    await answerCall();
+};
+
+document.getElementById("rejectBtn").onclick = () => {
+    hideIncomingCallModal();
+    pendingOffer = null;
+    log("Call rejected");
+};
+
+
+function showIncomingCallModal(callerId) {
+    const modal = document.getElementById("incomingCallModal");
+    const box = document.getElementById("incomingCallBox");
+
+    document.getElementById("callerId").innerText = callerId;
+    modal.classList.remove("hidden");
+
+    requestAnimationFrame(() => {
+        box.classList.remove("scale-95", "opacity-0");
+        box.classList.add("scale-100", "opacity-100");
+    });
+}
+
+function hideIncomingCallModal() {
+    const modal = document.getElementById("incomingCallModal");
+    const box = document.getElementById("incomingCallBox");
+
+    box.classList.remove("scale-100", "opacity-100");
+    box.classList.add("scale-95", "opacity-0");
+
+    setTimeout(() => modal.classList.add("hidden"), 300);
+}
 
 function log(txt) {
     document.getElementById("log").innerHTML += "<p>" + txt + "</p>";

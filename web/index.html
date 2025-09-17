@@ -63,25 +63,28 @@
 
 <!-- Incoming Call Popup -->
 <div id="incomingCallModal"
-     class="hidden fixed inset-0 flex items-center justify-center bg-black/70 z-50">
-    <div class="bg-gray-900 text-white p-6 rounded-lg shadow-lg w-80">
-        <h2 class="text-lg font-bold mb-4">Incoming Call</h2>
-        <p class="mb-6">
+     class="hidden fixed inset-0 flex items-center justify-center bg-black/70 z-50 p-4 transition-opacity duration-300">
+    <div id="incomingCallBox"
+         class="bg-gray-900 text-white p-4 sm:p-6 rounded-lg shadow-lg w-full max-w-sm transform transition-all duration-300 scale-95 opacity-0">
+        <h2 class="text-base sm:text-lg font-bold mb-3 sm:mb-4">Incoming Call</h2>
+        <p class="mb-4 sm:mb-6 text-sm sm:text-base">
             <span id="callerId" class="font-semibold text-yellow-400">Unknown</span>
             is calling you.
         </p>
-        <div class="flex justify-end gap-3">
+        <div class="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
             <button id="rejectBtn"
-                    class="px-4 py-2 bg-red-600 hover:bg-red-500 rounded">
+                    class="w-full sm:w-auto px-3 py-2 bg-red-600 hover:bg-red-500 rounded text-sm sm:text-base">
                 Reject
             </button>
             <button id="acceptBtn"
-                    class="px-4 py-2 bg-green-600 hover:bg-green-500 rounded">
+                    class="w-full sm:w-auto px-3 py-2 bg-green-600 hover:bg-green-500 rounded text-sm sm:text-base">
                 Answer
             </button>
         </div>
     </div>
 </div>
+
+
 
 <script src="app.js"></script>
 </body>
