@@ -14,7 +14,7 @@ async function getRTCConfig() {
             throw new Error("Failed to fetch RTC config: " + res.status);
         }
         const cfg = await res.json();
-        console.log("Fetched RTC config:", cfg);
+        console.log("Fetched RTC config");
         return cfg;
     } catch (err) {
         console.error("Error fetching RTC config:", err);
