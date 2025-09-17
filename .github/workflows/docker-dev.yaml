@@ -1,9 +1,6 @@
-name: Docker Main build and push
+name: Docker Dev build and push
 
-on:
-  push:
-    branches:
-      - 'main'
+on: workflow_dispatch
 
 jobs:
   docker:
