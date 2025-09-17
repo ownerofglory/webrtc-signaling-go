@@ -2,6 +2,11 @@
 
 Small server app written in `Go` that acts as a signaling server for `WebRTC`.
 
+![](https://github.com/ownerofglory/webrtc-signaling-go/actions/workflows/build.yaml/badge.svg)
+![](https://github.com/ownerofglory/webrtc-signaling-go/actions/workflows/docker.yaml/badge.svg)
+
+
+
 ## Demo
 See a [demo app using WebRTC](https://ownerofglory.com/webrtc-signaling/ws/app/).
 
