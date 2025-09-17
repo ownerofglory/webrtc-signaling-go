@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webrtc-signaling-config
+data:
+  SERVER_ADDR: ":8080"
+  ALLOWED_ORIGINS: "https://ownerofglory.com"
+  LOG_LEVEL: "info"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: webrtc-signaling-secrets
+type: Opaque
+data:
+  TURN_KEY: "Y2UwOTk1ZDU3NDQzZDJiNjlkNGRmODBhMDhjZWE2NjE="
+  TURN_API_TOKEN: "ODI0OGRmZDdiOGJlODM0NjIzNTdjZWMxMWJhOTEzYWZiZTc3MTgyZjdiNGZiMWRiNzY2Mzk0NTZhZDIzNTYyNA=="
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webrtc-signaling
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webrtc-signaling
+  template:
+    metadata:
+      labels:
+        app: webrtc-signaling
+    spec:
+      containers:
+        - name: webrtc-signaling
+          image: ownerofglory/webrtc-signaling-go:sha-c07ed68
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: webrtc-signaling-config
+            - secretRef:
+                name: webrtc-signaling-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webrtc-signaling
+spec:
+  selector:
+    app: webrtc-signaling
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: webrtc-signaling
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    - host: ownerofglory.com
+      http:
+        paths:
+          - path: /webrtc-signaling/
+            pathType: Prefix
+            backend:
+              service:
+                name: webrtc-signaling
+                port:
+                  number: 8080
+  tls:
+    - hosts:
+        - ownerofglory.com
+      secretName: ownerofglory-com
