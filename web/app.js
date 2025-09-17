@@ -1,4 +1,4 @@
-const ws = new WebSocket("wss://" + location.host + "/webrtc-signaling/ws");
+const ws = new WebSocket("ws://" + location.host + "/webrtc-signaling/ws");
 
 let pc = null;
 let dc = null;
@@ -37,8 +37,11 @@ ws.onmessage = async (ev) => {
 
     if (m.signal.type === "offer") {
         pendingOffer = m;
-        document.getElementById("answerBtn").disabled = false;
-        log("Incoming call from " + m.from + " — click Answer to accept");
+
+        document.getElementById("callerId").innerText = m.from;
+        document.getElementById("incomingCallModal").classList.remove("hidden");
+
+        log("Incoming call from " + m.from);
     }
     else if (m.signal.type === "answer") {
         console.log("Applying remote answer:", m.signal);
@@ -208,6 +211,18 @@ function copyMyId() {
         console.error("Failed to copy ID:", err);
     });
 }
+
+document.getElementById("acceptBtn").onclick = async () => {
+    document.getElementById("incomingCallModal").classList.add("hidden");
+    await answerCall();
+};
+
+document.getElementById("rejectBtn").onclick = () => {
+    document.getElementById("incomingCallModal").classList.add("hidden");
+    pendingOffer = null;
+    log("Call rejected");
+    // (Optional) Send a "reject" message to caller if you want them to know
+};
 
 function log(txt) {
     document.getElementById("log").innerHTML += "<p>" + txt + "</p>";
