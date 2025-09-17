@@ -41,6 +41,7 @@ ws.onmessage = async (ev) => {
         log("Incoming call from " + m.from);
     }
     else if (m.signal.type === "answer") {
+        hideCallingModal();
         console.log("Applying remote answer:", m.signal);
         await pc.setRemoteDescription({
             type: m.signal.type,
@@ -134,6 +135,7 @@ async function startCall() {
         },
         to: peerId
     }));
+    showCallingModal(peerId);
     log("Offer sent to " + peerId);
 }
 
@@ -232,6 +234,13 @@ document.getElementById("rejectBtn").onclick = () => {
     log("Call rejected");
 };
 
+document.getElementById("cancelCallBtn").onclick = () => {
+    hideCallingModal();
+    pendingOffer = null;
+    pc && pc.close();
+    pc = null;
+    log("Call cancelled");
+};
 
 function showIncomingCallModal(callerId) {
     const modal = document.getElementById("incomingCallModal");
@@ -249,6 +258,29 @@ function showIncomingCallModal(callerId) {
 function hideIncomingCallModal() {
     const modal = document.getElementById("incomingCallModal");
     const box = document.getElementById("incomingCallBox");
+
+    box.classList.remove("scale-100", "opacity-100");
+    box.classList.add("scale-95", "opacity-0");
+
+    setTimeout(() => modal.classList.add("hidden"), 300);
+}
+
+function showCallingModal(calleeId) {
+    const modal = document.getElementById("callingModal");
+    const box = document.getElementById("callingBox");
+
+    document.getElementById("calleeId").innerText = calleeId;
+    modal.classList.remove("hidden");
+
+    requestAnimationFrame(() => {
+        box.classList.remove("scale-95", "opacity-0");
+        box.classList.add("scale-100", "opacity-100");
+    });
+}
+
+function hideCallingModal() {
+    const modal = document.getElementById("callingModal");
+    const box = document.getElementById("callingBox");
 
     box.classList.remove("scale-100", "opacity-100");
     box.classList.add("scale-95", "opacity-0");
